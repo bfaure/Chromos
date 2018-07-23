@@ -1,0 +1,51 @@
+{
+  "name": "Chromos",
+  "version": "0.0.0.1",
+  "manifest_version": 2,
+
+  "web_accessible_resources": [ "options.html"
+                ],
+
+  "description": "Access WebArchived versions of webpages directly.",
+
+  "homepage_url": "http://bfaure.us",
+
+  "icons": {
+    "16": "icons/icon16.png",
+    /*"19": "icons/icon19.png",*/
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+
+  "default_locale": "en",
+
+  "background": {
+    "scripts": ["js/background.js"],
+    "persistent": true
+  },
+
+  "options_page": "options/options.html",
+
+  "browser_action": {
+    "default_icon": "icons/icon16.png"
+  },
+
+  /*
+  "content_scripts": [
+    {
+      "matches": ["http*"],
+      "js": ["popup/popup.js"],
+    }
+  ],
+  */
+
+  "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
+
+  "permissions": [
+    "activeTab",
+    "background",
+    "tabs",
+    "<all_urls>",
+    "storage"
+  ]
+}
