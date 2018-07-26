@@ -33,6 +33,7 @@ chrome.runtime.onMessage.addListener(
 });
 
 chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
+	chrome.tabs.executeScript({file: 'js/popup.js'})
   if (changeInfo.status == 'complete') {
     chrome.tabs.executeScript({
           file: 'js/popup.js'
