@@ -34,6 +34,9 @@ function process_url(url)
     let archived_items=get_webarchive_urls(url);
     console.log(archived_items);
 
+    let json_data=JSON.parse(archived_items);
+    console.log(json_data);
+
     let iframe_container=document.createElement("div");
     iframe_container.id="chromos_container";
     iframe_container.style.boxShadow="0px 2px 4px rgba(0,0,0,0.4)";
@@ -58,6 +61,22 @@ function process_url(url)
 
     //iframe_container.innerHTML+="<p>this is another test</p>";
 
+    let frame_logo=document.createElement("img");
+    frame_logo.src="https://artsweb.uwaterloo.ca/archivesunleashed/wp-content/uploads/sites/19/2015/10/1024px-Internet_Archive_logo_and_wordmark-300x300.png";
+    frame_logo.style.position="absolute";
+    frame_logo.style.top="0px";
+    frame_logo.style.right="0px";
+    frame_logo.style.height="40px";
+    frame_logo.style.width="40px";
+    frame_logo.style.margin="10px";
+    iframe_container.appendChild(frame_logo);
+
+    let archive_link=document.createElement("a");
+    archive_link.href=json_data.archived_snapshots.closest.url;
+    archive_link.textContent=json_data.archived_snapshots.closest.url;
+    archive_link.target="_blank";
+
+    iframe_container.appendChild(archive_link);
 
     document.body.appendChild(iframe_container);    
 
