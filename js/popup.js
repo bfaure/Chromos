@@ -47,6 +47,7 @@ function process_url(url)
     iframe_container.style.width="95%";
     iframe_container.style.left="2.5%";
     iframe_container.style.background="rgba(256,256,256,0.95)";
+    iframe_container.style.transition="2s all";
 
 
 
@@ -61,22 +62,42 @@ function process_url(url)
 
     //iframe_container.innerHTML+="<p>this is another test</p>";
 
+    let frame_logo_link=document.createElement("a");
     let frame_logo=document.createElement("img");
     frame_logo.src="https://artsweb.uwaterloo.ca/archivesunleashed/wp-content/uploads/sites/19/2015/10/1024px-Internet_Archive_logo_and_wordmark-300x300.png";
     frame_logo.style.position="absolute";
-    frame_logo.style.top="0px";
+    frame_logo.style.bottom="0px";
     frame_logo.style.right="0px";
     frame_logo.style.height="40px";
     frame_logo.style.width="40px";
     frame_logo.style.margin="10px";
-    iframe_container.appendChild(frame_logo);
+    frame_logo_link.href="https://archive.org/";
+    frame_logo_link.target="_blank";
+    //iframe_container.appendChild(frame_logo);
+    frame_logo_link.appendChild(frame_logo);
+    iframe_container.appendChild(frame_logo_link);
 
     let archive_link=document.createElement("a");
     archive_link.href=json_data.archived_snapshots.closest.url;
     archive_link.textContent=json_data.archived_snapshots.closest.url;
     archive_link.target="_blank";
-
     iframe_container.appendChild(archive_link);
+
+
+    let close_button=document.createElement("button");
+    close_button.textContent="Close";
+    close_button.onclick=function(){
+        iframe_container.style.top="-400px";
+    };
+    close_button.style.border="none";
+    close_button.style.boxShadow="0px 2px 4px rgba(0,0,0,0.4)";
+    close_button.style.borderRadius="0px";
+    close_button.style.position="absolute";
+    close_button.style.left="0px";
+    close_button.style.bottom="0px";
+    close_button.style.margin="10px";
+    iframe_container.appendChild(close_button);
+
 
     document.body.appendChild(iframe_container);    
 
