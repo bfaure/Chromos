@@ -32,8 +32,9 @@ chrome.runtime.onMessage.addListener(
 	return true;
 });
 
+/*
 chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
-	chrome.tabs.executeScript({file: 'js/popup.js'})
+	//chrome.tabs.executeScript({file: 'js/popup.js'})
   if (changeInfo.status == 'complete') {
     chrome.tabs.executeScript({
           file: 'js/popup.js'
@@ -41,4 +42,12 @@ chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
 
   }
 })
+*/
+
+
+chrome.browserAction.onClicked.addListener(function(tab) { 
+	chrome.tabs.executeScript({file: "js/popup.js"});
+});
+
+
 
