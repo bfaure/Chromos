@@ -20,7 +20,7 @@ function get_http_xml(url)
 }
 
 function get_webarchive_urls(url){
-    let built_url="http://archive.org/wayback/available?url="+url;
+    let built_url="https://archive.org/wayback/available?url="+url;
     return get_http_xml(built_url);
 }
 
