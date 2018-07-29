@@ -3,7 +3,7 @@ console.log("in popup.js");
 
 // Provided a referenced to a callback function, finds the URL of the
 // current tab and routes it to the callback function.
-function get_url(callback)
+function getCurrentUrl(callback)
 {
 	chrome.runtime.sendMessage({func: "get_url"},function(response)
 	{
@@ -11,7 +11,7 @@ function get_url(callback)
 	});
 }
 
-function get_http_xml(url)
+function getHttpXml(url)
 {
 	var xml_http = new XMLHttpRequest();
 	xml_http.open("GET",url,false);
@@ -19,48 +19,84 @@ function get_http_xml(url)
 	return xml_http.responseText;
 }
 
-function get_webarchive_urls(url){
+function getWebArchiveRecent(url){
     let built_url="https://archive.org/wayback/available?url="+url;
-    return get_http_xml(built_url);
+    return getHttpXml(built_url);
 }
 
+function getWebArchiveDatetime(url,datetime){
+    console.log("in getWebArchiveDatetime, date=",datetime," url=",url);
+    return;
+    let built_url="https://archive.org/wayback/available?url="+url+"&timestamp="+datetime 
+    return getHttpXml(built_url);
+}
 
-// callback for get_url
-function process_url(url)
+function buildFrame(){
+    let frame_container=document.createElement("div");
+    frame_container.id="chromos_container";
+    frame_container.style.boxShadow="0px 2px 4px rgba(0,0,0,0.4)";
+    frame_container.style.height="40%";
+    frame_container.style.top="40px";
+    frame_container.style.zIndex="9999999";
+    frame_container.style.position="fixed";
+    frame_container.style.width="95%";
+    frame_container.style.left="2.5%";
+    frame_container.style.background="rgba(256,256,256,0.95)";
+    frame_container.style.transition="2s all";
+    document.body.appendChild(frame_container);    
+    return frame_container;
+}
+
+function buildFrameTitle(url){
+    let frame_title=document.createElement("p");
+    frame_title.textContent="WebArchive results for \'"+url+"\'";
+    frame_title.style.fontFamily="\'Roboto\', sans-serif";
+    frame_title.style.fontSize="16px";
+    frame_title.style.margin="10px";
+    return frame_title;
+}
+
+function parseTimestamp(timestamp){
+    let the_date=new Date();
+    the_date.setYear(timestamp.slice(0,4));
+    the_date.setMonth(parseInt(timestamp.slice(4,6)-1));
+    the_date.setDate(parseInt(timestamp.slice(6,8)-1));
+    the_date.setHours(parseInt(timestamp.slice(8,10)-1));
+    the_date.setMinutes(parseInt(timestamp.slice(10,12)-1));
+    the_date.setSeconds(parseInt(timestamp.slice(12,14)-1));
+    return the_date;
+}
+
+// callback for getCurrentUrl
+function processUrl(url)
 {
-    console.log(url);
-    
-    console.log("asking WebArchive for data...");
-    let archived_items=get_webarchive_urls(url);
-    console.log(archived_items);
-
+    let archived_items=getWebArchiveRecent(url);
     let json_data=JSON.parse(archived_items);
     console.log(json_data);
 
-    let iframe_container=document.createElement("div");
-    iframe_container.id="chromos_container";
-    iframe_container.style.boxShadow="0px 2px 4px rgba(0,0,0,0.4)";
-    iframe_container.style.height="22%";
-    iframe_container.style.top="40px";
-    iframe_container.style.zIndex="9999999";
-    iframe_container.style.position="fixed";
-    iframe_container.style.width="95%";
-    iframe_container.style.left="2.5%";
-    iframe_container.style.background="rgba(256,256,256,0.95)";
-    iframe_container.style.transition="2s all";
+    let frame_container=buildFrame(); 
+    let frame_title=buildFrameTitle(url);
+    frame_container.appendChild(frame_title);
 
+    let frame_head=document.createElement("head");
+    frame_container.appendChild(frame_head);
 
+    let roboto_font_import=document.createElement("link");
+    roboto_font_import.href="https://fonts.googleapis.com/css?family=Roboto"
+    roboto_font_import.rel="stylesheet";
+    frame_head.appendChild(roboto_font_import);
 
-    let frame_title=document.createElement("p");
-    frame_title.textContent="WebArchive for \'"+url+"\'";
-    frame_title.style.fontFamily="roboto";
-    frame_title.style.fontSize="16px";
-    frame_title.style.margin="10px";
+    let jquery_import=document.createElement("script");
+    jquery_import.src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js";
+    jquery_import.type="text/javascript";
+    frame_head.appendChild(jquery_import);
 
-    iframe_container.appendChild(frame_title);
-    //iframe_container.innerHTML="<p>WebArchive</p>";
-
-    //iframe_container.innerHTML+="<p>this is another test</p>";
+    /*
+    let jquery_ui_import=document.createElement("script");
+    jquery_ui_import.src="https://code.jquery.com/ui/1.10.3/jquery-ui.js";
+    jquery_ui_import.type="text/javascript";
+    frame_head.appendChild(jquery_ui_import);
+    */
 
     let frame_logo_link=document.createElement("a");
     let frame_logo=document.createElement("img");
@@ -73,21 +109,22 @@ function process_url(url)
     frame_logo.style.margin="10px";
     frame_logo_link.href="https://archive.org/";
     frame_logo_link.target="_blank";
-    //iframe_container.appendChild(frame_logo);
     frame_logo_link.appendChild(frame_logo);
-    iframe_container.appendChild(frame_logo_link);
+    frame_container.appendChild(frame_logo_link);
+
+    let recent_datetime=parseTimestamp(json_data.archived_snapshots.closest.timestamp);
 
     let archive_link=document.createElement("a");
+    archive_link.style.margin="10px";
     archive_link.href=json_data.archived_snapshots.closest.url;
-    archive_link.textContent=json_data.archived_snapshots.closest.url;
+    archive_link.textContent="Most Recent Snapshot ("+recent_datetime.toLocaleString()+")";
     archive_link.target="_blank";
-    iframe_container.appendChild(archive_link);
-
+    frame_container.appendChild(archive_link);
 
     let close_button=document.createElement("button");
     close_button.textContent="Close";
     close_button.onclick=function(){
-        iframe_container.style.top="-400px";
+        frame_container.style.top="-400px";
     };
     close_button.style.border="none";
     close_button.style.boxShadow="0px 2px 4px rgba(0,0,0,0.4)";
@@ -96,14 +133,40 @@ function process_url(url)
     close_button.style.left="0px";
     close_button.style.bottom="0px";
     close_button.style.margin="10px";
-    iframe_container.appendChild(close_button);
+    frame_container.appendChild(close_button);
 
+    let date_label=document.createElement("p");
+    date_label.textContent="Specify Date";
+    date_label.style.display="block";
+    date_label.style.margin="10px";
+    date_label.style.fontSize="12px";
+    date_label.style.fontFamily="\'Roboto\', sans-serif";
+    frame_container.appendChild(date_label);
 
-    document.body.appendChild(iframe_container);    
+    let datepicker_input=document.createElement("input");
+    datepicker_input.type="date";
+    datepicker_input.style.display="block";
+    datepicker_input.style.margin="10px";
+    datepicker_input.style.fontSize="12px";
+    datepicker_input.style.fontFamily="\'Roboto\', sans-serif";
+    frame_container.appendChild(datepicker_input);
+
+    let date_search=document.createElement("button");
+    date_search.innerText="Search";
+    date_search.onclick=function(){
+        console.log("here");
+        console.log(url);
+        console.log(datepicker_input);
+        console.log(datepicker_input.textContent);
+        console.log(datepicker_input.innerText);
+        //return getWebArchiveDatetime(url,datepicker_input);
+    }
+    frame_container.appendChild(date_search);
+
 
 }
 
-// Call get_url function with the process_url function being called
-// after get_url has called callback. The value provided to callback
-// by get_url will be routed as the input to process_url
-get_url(process_url);
+// Call getCurrentUrl function with the processUrl function being called
+// after getCurrentUrl has called callback. The value provided to callback
+// by getCurrentUrl will be routed as the input to processUrl
+getCurrentUrl(processUrl);
