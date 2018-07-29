@@ -3,7 +3,7 @@
   "version": "0.0.0.1",
   "manifest_version": 2,
 
-  "web_accessible_resources": [ "options.html","js/popup.js","js/popup.htm","icons/icon128.png"],
+  "web_accessible_resources": [ "options.html","js/popup.js","icons/icon128.png"],
 
   "description": "Access WebArchived versions of webpages directly.",
 
