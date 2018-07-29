@@ -26,6 +26,13 @@ function getWebArchiveRecent(url){
 
 function getWebArchiveDatetime(url,datetime){
     console.log("in getWebArchiveDatetime, date=",datetime," url=",url);
+
+    let picked_year=datetime.split("-")[0];
+    let picked_month=datetime.split("-")[1];
+    let picked_day=datetime.split("-")[2];
+
+    console.log(picked_year,picked_month,picked_day);
+
     return;
     let built_url="https://archive.org/wayback/available?url="+url+"&timestamp="+datetime 
     return getHttpXml(built_url);
@@ -70,13 +77,20 @@ function parseTimestamp(timestamp){
 // callback for getCurrentUrl
 function processUrl(url)
 {
-    let archived_items=getWebArchiveRecent(url);
-    let json_data=JSON.parse(archived_items);
-    console.log(json_data);
 
     let frame_container=buildFrame(); 
     let frame_title=buildFrameTitle(url);
     frame_container.appendChild(frame_title);
+
+    let loading_label=document.createElement("p");
+    loading_label.textContent="Loading...";
+    frame_container.appendChild(loading_label);
+
+    let archived_items=getWebArchiveRecent(url);
+    let json_data=JSON.parse(archived_items);
+    console.log(json_data);
+
+    loading_label.style.display="none";
 
     let frame_head=document.createElement("head");
     frame_container.appendChild(frame_head);
@@ -135,33 +149,60 @@ function processUrl(url)
     close_button.style.margin="10px";
     frame_container.appendChild(close_button);
 
+    let date_input_span=document.createElement("span");
+    date_input_span.style.display="block";
+    date_input_span.style.margin="10px";
+    frame_container.appendChild(date_input_span);
+
     let date_label=document.createElement("p");
     date_label.textContent="Specify Date";
-    date_label.style.display="block";
+    date_label.style.display="inline";
     date_label.style.margin="10px";
     date_label.style.fontSize="12px";
     date_label.style.fontFamily="\'Roboto\', sans-serif";
-    frame_container.appendChild(date_label);
+    date_input_span.appendChild(date_label);
 
     let datepicker_input=document.createElement("input");
     datepicker_input.type="date";
-    datepicker_input.style.display="block";
+    datepicker_input.id="datepicker_input";
     datepicker_input.style.margin="10px";
     datepicker_input.style.fontSize="12px";
-    datepicker_input.style.fontFamily="\'Roboto\', sans-serif";
-    frame_container.appendChild(datepicker_input);
+    datepicker_input.style.border="none";
+    datepicker_input.style.width="130px";
+    date_input_span.appendChild(datepicker_input);
 
     let date_search=document.createElement("button");
     date_search.innerText="Search";
     date_search.onclick=function(){
-        console.log("here");
-        console.log(url);
-        console.log(datepicker_input);
-        console.log(datepicker_input.textContent);
-        console.log(datepicker_input.innerText);
-        //return getWebArchiveDatetime(url,datepicker_input);
+        
+        let picked_day=datepicker_input.value.split("-")[2];
+        let picked_month=datepicker_input.value.split("-")[1];
+        let picked_year=datepicker_input.value.split("-")[0];
+
+        if (datepicker_input.value.length<1){
+            datepicker_input.style.border="2px solid red";
+            setTimeout(function(){
+                datepicker_input.style.border="none";
+            },2000);
+            return;
+        }
+
+        try{
+            parseInt(picked_year);
+            parseInt(picked_month);
+            parseInt(picked_day);
+        } catch(err){
+            datepicker_input.style.border="2px solid red";
+            setTimeout(function(){
+                datepicker_input.style.border="none";
+            },2000);
+            return;
+        }
+        getWebArchiveDatetime(url,datepicker_input.value);
     }
-    frame_container.appendChild(date_search);
+    date_search.style.border="none";
+    date_search.style.boxShadow="0px 2px 4px rgba(0,0,0,0.4)";
+    date_input_span.appendChild(date_search);
 
 
 }
