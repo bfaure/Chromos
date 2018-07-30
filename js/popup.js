@@ -26,15 +26,8 @@ function getWebArchiveRecent(url){
 
 function getWebArchiveDatetime(url,datetime){
     console.log("in getWebArchiveDatetime, date=",datetime," url=",url);
-
-    let picked_year=datetime.split("-")[0];
-    let picked_month=datetime.split("-")[1];
-    let picked_day=datetime.split("-")[2];
-
-    console.log(picked_year,picked_month,picked_day);
-
-    return;
-    let built_url="https://archive.org/wayback/available?url="+url+"&timestamp="+datetime 
+    let timestamp=datetime.split('-')[0]+datetime.split('-')[1]+datetime.split('-')[2];
+    let built_url="https://archive.org/wayback/available?url="+url+"&timestamp="+timestamp;
     return getHttpXml(built_url);
 }
 
@@ -77,7 +70,6 @@ function parseTimestamp(timestamp){
 // callback for getCurrentUrl
 function processUrl(url)
 {
-
     let frame_container=buildFrame(); 
     let frame_title=buildFrameTitle(url);
     frame_container.appendChild(frame_title);
@@ -104,13 +96,6 @@ function processUrl(url)
     jquery_import.src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js";
     jquery_import.type="text/javascript";
     frame_head.appendChild(jquery_import);
-
-    /*
-    let jquery_ui_import=document.createElement("script");
-    jquery_ui_import.src="https://code.jquery.com/ui/1.10.3/jquery-ui.js";
-    jquery_ui_import.type="text/javascript";
-    frame_head.appendChild(jquery_ui_import);
-    */
 
     let frame_logo_link=document.createElement("a");
     let frame_logo=document.createElement("img");
@@ -157,7 +142,6 @@ function processUrl(url)
     let date_label=document.createElement("p");
     date_label.textContent="Specify Date";
     date_label.style.display="inline";
-    date_label.style.margin="10px";
     date_label.style.fontSize="12px";
     date_label.style.fontFamily="\'Roboto\', sans-serif";
     date_input_span.appendChild(date_label);
@@ -170,6 +154,22 @@ function processUrl(url)
     datepicker_input.style.border="none";
     datepicker_input.style.width="130px";
     date_input_span.appendChild(datepicker_input);
+
+
+    let date_search_results_label=document.createElement("p");
+    date_search_results_label.style.display="inline";
+    date_search_results_label.textContent="- Closest Snapshot: ";
+    let date_search_results_link=document.createElement("a");
+
+    let date_search_results_span=document.createElement("span");
+    date_search_results_link.style.display="inline";
+    date_search_results_link.style.marginLeft="10px";
+    date_search_results_link.target="_blank";
+    date_search_results_span.style.display="none";
+    date_search_results_span.style.margin="10px";
+    date_search_results_span.appendChild(date_search_results_label);
+    date_search_results_span.appendChild(date_search_results_link); 
+    frame_container.appendChild(date_search_results_span);
 
     let date_search=document.createElement("button");
     date_search.innerText="Search";
@@ -198,7 +198,14 @@ function processUrl(url)
             },2000);
             return;
         }
-        getWebArchiveDatetime(url,datepicker_input.value);
+        let date_results=getWebArchiveDatetime(url,datepicker_input.value);
+        date_results=JSON.parse(date_results);
+        console.log(date_results);
+
+        date_search_results_link.href=date_results.archived_snapshots.closest.url;
+        date_search_results_link.textContent=parseTimestamp(date_results.archived_snapshots.closest.timestamp).toLocaleString();
+
+        date_search_results_span.style.display="block";
     }
     date_search.style.border="none";
     date_search.style.boxShadow="0px 2px 4px rgba(0,0,0,0.4)";

@@ -8,7 +8,7 @@
   "description": "Access WebArchived versions of webpages directly.",
 
   "homepage_url": "http://bfaure.us",
-
+  
   "icons": {
     "16": "icons/icon16.png",
     "19": "icons/icon19.png",
