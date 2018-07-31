@@ -19,16 +19,24 @@ function getHttpXml(url)
 	return xml_http.responseText;
 }
 
-function getWebArchiveRecent(url){
+function fetchWebArchiveRecent(url){
     let built_url="https://archive.org/wayback/available?url="+url;
     return getHttpXml(built_url);
 }
 
-function getWebArchiveDatetime(url,datetime){
-    console.log("in getWebArchiveDatetime, date=",datetime," url=",url);
+function fetchWebArchiveDatetime(url,datetime){
+    console.log("in fetchWebArchiveDatetime, date=",datetime," url=",url);
     let timestamp=datetime.split('-')[0]+datetime.split('-')[1]+datetime.split('-')[2];
     let built_url="https://archive.org/wayback/available?url="+url+"&timestamp="+timestamp;
     return getHttpXml(built_url);
+}
+
+function fetchWebArchiveAll(url){
+    console.log("in fetchWebArchiveAll, url=",url);
+    let built_url="https://web.archive.org/cdx/search/cdx?url="+url;
+    let data=getHttpXml(built_url);
+    console.log("just finished inside fetchWebArchiveAll");
+    return data;
 }
 
 function buildFrame(){
@@ -49,10 +57,11 @@ function buildFrame(){
 
 function buildFrameTitle(url){
     let frame_title=document.createElement("p");
-    frame_title.textContent="WebArchive results for \'"+url+"\'";
+    frame_title.textContent="WebArchive results for \'"+(url.length<80 ? url : url.slice(0,79)+"...")+"\'";
     frame_title.style.fontFamily="\'Roboto\', sans-serif";
     frame_title.style.fontSize="16px";
     frame_title.style.margin="10px";
+    frame_title.style.marginBottom="20px";
     return frame_title;
 }
 
@@ -67,6 +76,15 @@ function parseTimestamp(timestamp){
     return the_date;
 }
 
+function buildMostRecentLink(url,element){
+    let archived_items=fetchWebArchiveRecent(url);
+    console.log(archived_items);
+    let json_data=JSON.parse(archived_items);
+    let recent_datetime=parseTimestamp(json_data.archived_snapshots.closest.timestamp);
+    element.textContent=recent_datetime.toLocaleString();
+    element.href=json_data.archived_snapshots.closest.url;
+}
+
 // callback for getCurrentUrl
 function processUrl(url)
 {
@@ -75,12 +93,14 @@ function processUrl(url)
     frame_container.appendChild(frame_title);
 
     let loading_label=document.createElement("p");
-    loading_label.textContent="Loading...";
+    loading_label.textContent="Loading content from WebArchive...";
+    loading_label.style.fontFamily="Consolas";
+    loading_label.style.margin="10px";
     frame_container.appendChild(loading_label);
 
-    let archived_items=getWebArchiveRecent(url);
-    let json_data=JSON.parse(archived_items);
-    console.log(json_data);
+    //let archived_items=fetchWebArchiveRecent(url);
+    //let json_data=JSON.parse(archived_items);
+    //console.log(json_data);
 
     loading_label.style.display="none";
 
@@ -111,19 +131,32 @@ function processUrl(url)
     frame_logo_link.appendChild(frame_logo);
     frame_container.appendChild(frame_logo_link);
 
-    let recent_datetime=parseTimestamp(json_data.archived_snapshots.closest.timestamp);
+    let archive_link_span=document.createElement("span");
+    archive_link_span.style.marginTop="10px";
+    archive_link_span.style.marginLeft="10px";
+    archive_link_span.style.fontFamily="Roboto, sans-serif";
+    archive_link_span.style.fontSize="12px";
 
+    let archive_link_label=document.createElement("p");
+    archive_link_label.textContent="Most Recent Snapshot";
+    archive_link_label.style.display="inline";
+    
     let archive_link=document.createElement("a");
-    archive_link.style.margin="10px";
-    archive_link.href=json_data.archived_snapshots.closest.url;
-    archive_link.textContent="Most Recent Snapshot ("+recent_datetime.toLocaleString()+")";
+    archive_link.textContent="Loading data from WebArchive...";
     archive_link.target="_blank";
-    frame_container.appendChild(archive_link);
+    archive_link.style.display="inline";
+    archive_link.style.marginLeft="10px";
+
+    setTimeout(buildMostRecentLink(url,archive_link),0);
+    
+    archive_link_span.appendChild(archive_link_label);
+    archive_link_span.appendChild(archive_link);
+    frame_container.appendChild(archive_link_span);
 
     let close_button=document.createElement("button");
     close_button.textContent="Close";
     close_button.onclick=function(){
-        frame_container.style.top="-400px";
+        frame_container.style.top="-150%";
     };
     close_button.style.border="none";
     close_button.style.boxShadow="0px 2px 4px rgba(0,0,0,0.4)";
@@ -166,7 +199,7 @@ function processUrl(url)
     date_search_results_link.style.marginLeft="10px";
     date_search_results_link.target="_blank";
     date_search_results_span.style.display="none";
-    date_search_results_span.style.margin="10px";
+    date_search_results_span.style.marginLeft="10px";
     date_search_results_span.appendChild(date_search_results_label);
     date_search_results_span.appendChild(date_search_results_link); 
     frame_container.appendChild(date_search_results_span);
@@ -198,7 +231,7 @@ function processUrl(url)
             },2000);
             return;
         }
-        let date_results=getWebArchiveDatetime(url,datepicker_input.value);
+        let date_results=fetchWebArchiveDatetime(url,datepicker_input.value);
         date_results=JSON.parse(date_results);
         console.log(date_results);
 
@@ -211,6 +244,10 @@ function processUrl(url)
     date_search.style.boxShadow="0px 2px 4px rgba(0,0,0,0.4)";
     date_input_span.appendChild(date_search);
 
+
+    console.log("before fetching all");
+    //setTimeout(fetchWebArchiveAll(url),0);
+    console.log("after fetching all");
 
 }
 
